@@ -1,0 +1,147 @@
+<tool id="cloudmap_variant_discovery_mapping" name="CloudMap: Variant Discovery Mapping with WGS data">
+    <description>Map a mutation using in silico bulk segregant linkage analysis using variants that are already present in the mutant strain of interest (rather than those introduced by a cross to a polymorphic strain).</description>
+    <command interpreter="python">
+	#if $source.source_select=="elegans" #VDM_Mapping.py --sample_vcf "$sample_vcf" --loess_span "$loess_span" --d_yaxis "$d_yaxis" --h_yaxis "$h_yaxis" --points_color "$points_color" --loess_color "$loess_color" --output "$output" --location_plot_output "$location_plot_output" --standardize "$standardize" --normalize_bins "$normalize_bins" --break_file "$source.Celegans" 
+    #else if  $source.source_select=="brachypodium" #SNP_Mapping.py --sample_vcf "$sample_vcf" --loess_span "$loess_span" --d_yaxis "$d_yaxis" --h_yaxis "$h_yaxis" --points_color "$points_color" --loess_color "$loess_color" --output "$output" --location_plot_output "$location_plot_output" --standardize "$standardize" --normalize_bins "$normalize_bins" --break_file "$source.Brachy" 
+	#else if  $source.source_select=="arabidopsis" #VDM_Mapping.py --sample_vcf "$sample_vcf" --loess_span "$loess_span" --d_yaxis "$d_yaxis" --h_yaxis "$h_yaxis" --points_color "$points_color" --loess_color "$loess_color" --output "$output" --location_plot_output "$location_plot_output" --standardize "$standardize" --normalize_bins "$normalize_bins" --break_file "$source.Arabidop" 
+	#else if  $source.source_select=="other" #VDM_Mapping.py --sample_vcf "$sample_vcf" --loess_span "$loess_span" --d_yaxis "$d_yaxis" --h_yaxis "$h_yaxis" --points_color "$points_color" --loess_color "$loess_color" --output "$output" --location_plot_output "$location_plot_output" --standardize "$standardize" --normalize_bins "$normalize_bins" --break_file "$source.Other" 
+	#end if 
+    </command>
+
+    <inputs>
+	<conditional name="source">
+		<param name="source_select" type="select" label="Please select the species">
+		        <option value="elegans">C. elegans</option>
+                <option value="brachypodium">Brachypodium</option>
+        		<option value="arabidopsis">Arabidopsis</option>
+        		<option value="other">Other</option>
+      	</param>
+      	<when value="elegans">
+        		<param name="Celegans" type="hidden" value="C.elegans" label="The C.elegans configuration file by default" help="C.elegans help" />
+		</when>
+        <when value="brachypodium">
+            <param name="Brachy" type="hidden" value="Brachypodium" label="The Brachypodium configuration file by default" help="Brachypodium help" />
+        </when>
+      	<when value="arabidopsis">
+        		<param name="Arabidop" type="hidden" value="Arabidopsis" label="The Arabidopsis configuration file by default" help="Arabidopsis help" />
+		</when>
+      	<when value="other">
+        		<param name="Other" type="data" format="tabular" label="Please select your 'Other species' configuration file from your history" help="Tabular configuration file for Other species support" />
+		</when>
+    </conditional>  
+        <param name="sample_vcf" size = "125" type="data" format="vcf" label="WGS Mutant VCF File" help="WGS Mutant VCF file from pooled F2 mutants that have been outcrossed to any strain. The VCF should contain data from only heterozygous or homozygous base position as determined by the GATK Unified Genotyper filtered for quality score > Q200" />
+		<param name="loess_span" size = "15" type="float" value=".4" label="Loess span" help="Parameter that controls the degree of data smoothing."/>    
+		<param name="d_yaxis" size = "15" type="float" value="1" label="Y-axis upper limit for scatter plot" />
+		<param name="h_yaxis" size = "15" type="integer" value="0" label="Y-axis upper limit for frequency plot" help="'0' default adjusts scale to tallest peak"/>
+		<param name="points_color" size = "15" type="text" value="gray27" label="Color for data points" help="See below for list of supported colors"/> 
+		<param name="loess_color" size = "15" type="text" value="green" label="Color for loess regression line" help="See below for list of supported colors"/>
+		<param name="standardize" type="boolean" truevalue="true" falsevalue="false" checked="true"  label="Standardize X-axis" help="Scatter plots and frequency plots from separate chromosomes will have uniform X-axis spacing for comparison"/>
+		<param name="normalize_bins" type="boolean" truevalue="true" falsevalue="false" checked="true"  label="Normalize frequency plots" help="Frequency plots of pure parental allele counts will be normalized according to the equation in Supp Fig.4 of the CloudMap paper"/>
+    </inputs>
+    <outputs>
+        <data name="output" type="text" format="tabular" />
+	<data name="location_plot_output" format="pdf" />
+    </outputs>
+    <requirements>
+        <requirement type="python-module">sys</requirement>
+        <requirement type="python-module">optparse</requirement>
+        <requirement type="python-module">csv</requirement>
+        <requirement type="python-module">re</requirement>
+	<requirement type="python-module">decimal</requirement>
+        <requirement type="python-module">rpy</requirement>
+    </requirements>
+    <tests>
+	<param name="sample_vcf" value="" />
+	<output name="output" file="" />
+	<output name="plot_output" file="" />
+    </tests>
+    <help>
+**What it does:** 
+
+This tool is part of the CloudMap pipeline for analysis of mutant genome sequences. For further details, please see `Gregory Minevich, Danny S. Park, Daniel Blankenberg, Richard J. Poole and Oliver Hobert.  CloudMap: A Cloud-based Pipeline for Analysis of Mutant Genome Sequences. (Genetics 2012 In Press)`__
+
+    .. __: http://hobertlab.org/original-research/
+
+CloudMap workflows, shared histories and reference datasets are available at the `CloudMap Galaxy page`__ 
+
+    .. __: http://usegalaxy.org/cloudmap 
+
+CloudMap video user guides and Frequently Asked Questions (FAQs) are available at the `Hobert lab website`__ 
+
+    .. __: http://hobertlab.org/cloudmap     
+
+
+Although Hawaiian Variant Mapping is the preferred method for mapping causal mutations in whole genome sequenced strains (see CloudMap Hawaiian Variant Mapping with WGS tool), there remain certain scenarios where alternate mapping approaches are useful. For instance, introducing tens of thousands of Hawaiian variants into a mutant strain may not be desirable for individuals concerned with the possibility that some of these Hawaiian variants may act as modifiers of a given phenotype. Behavioral mutants may be especially vulnerable in this regard. Furthermore, in the case of suppressor screens or other screens that have been performed in a mutant background, it is tedious to recover both the suppressor variant and the starting mutation when picking the F2 progeny required for the Hawaiian Variant Mapping technique. In these scenarios, it is useful to not have to rely on a polymorphic mapping strain like the Hawaiian strain.
+
+A recent study in plants (Abe et al. 2012), uses EMS-induced variants and bulk segregant analysis to map a phenotype-causing mutation. We have developed a similar method, which we call “Variant Discovery Mapping”. Our method makes use of background variants in addition to EMS-induced variants (including indels as well as SNPs), and also uses the bulk segregant approach. 
+
+**The conceptual strategy of variant discovery mapping is to perform in silico bulk segregant linkage analysis using variants that are already present in the mutant strain of interest, rather than examining those introduced by a cross to a polymorphic strain.** Any individual mutant strain will contain a certain number of homozygous variants compared to the reference genome. These homozygous variants are of two types: 1) those directly induced during mutagenesis (one or more of which are responsible for the mutant phenotype) (Fig.11A red diamonds) and 2) those already present in the background of the parental strain, either because of genetic drift or because of the parental strain containing, for example, a transgene that was integrated into the genome by irradiation (Fig.11A pale blue diamonds).
+
+
+.. image:: http://www.hobertlab.org/CloudMap/Fig.11A_VDM.png
+
+
+Following an outcross to a non-parental strain and selection of a pool of F2-mutant recombinants, these homozygous variants will segregate according to their degree of linkage to the phenotype-inducing locus. The degree of linkage will be directly reflected in the allele frequency among the pool of recombinants and this can be represented as scatter plots of the ratio of variant reads/total reads present in the pool of sequenced recombinants (Fig.11A). We then plot a loess regression line through all the points on a given chromosome to give greater accuracy to the mapping region (Fig.11B). The loess lines on scatter plots for linked chromosomes approach 1, indicating retention of the original homozygous variants in the linked region. We also draw corresponding frequency plots that display regions of linked chromosomes where pure parental allele variant positions are concentrated (positions where the ratio of variant reads/total reads are equal to 1) (Fig.11B). 1Mb bins for the 0 ratio SNP positions are colored gray by default and .5Mb bins are colored in red.
+
+
+.. image:: http://www.hobertlab.org/CloudMap/Fig.11B-C_VDM_2.png
+
+
+
+
+**We have tested the Variant Discovery Mapping method by crossing mutant strains to either N2 or Hawaiian CB4856 strains. In theory, it should be possible to cross the mutant strain to the original starting screening strain (as opposed to N2). For example, one might want to perform such a cross in the case of a suppressor screen where the screening strain has a second mutation that must be present for the mutant phenotype to be visible. However, crossing to the original starting screening strain will result in fewer mutations (relative to N2) that will be retained in the pooled sample that is sequenced. For this reason, mapping resulting from a cross to the original starting screening strain will not be as accurate as mapping from a cross to N2 and certainly not as accurate as mapping from a cross to the Hawaiian strain.**
+
+------
+
+**Input:**
+
+This tool accepts as input a single VCF file containing reference (e.g. Bristol) and alternate (e.g. EMS, background, or crossing strain variant) alleles calls in the pooled mutant sample. This input VCF is generated at an earlier analysis step by running the GATK Unified Genotyper on a BAM alignment file of the pooled mutant sample and selecting only heterozygous or homozygous base positions as determined by the GATK Unified Genotyper (filtered for quality score > Q200). The reader is referred to the user guide and online video for direction on this procedure. 
+
+The CloudMap Variant Discovery Mapping with WGS Data tool supports data from any organism. C. elegans and Arabidopsis are natively supported. For all other organisms, users must provide a simple tab-delimited configuration file containing chromosome numbers and respective lengths (example configuration files for most major organisms provided at http://usegalaxy.org/cloudmap). 
+
+
+**Output:**
+
+The tool also provides a tabular output file that contains a count of the number of reference and alternate variants in the pooled mutant sample as well as the ratio of alternate alleles/total reads at each variant position. 
+
+
+------
+
+**Settings:**
+
+.. class:: infomark
+
+Information on loess regression and the loess span parameter:
+http://en.wikipedia.org/wiki/Local_regression
+
+.. class:: infomark
+
+Based on our testing, we've settled on .4 as a loess span default. Larger values result in smoothing of the line to reflect trends at a more macro level. Smaller values result in loess lines that more closely reflect local data fluctuations. 
+
+.. class:: infomark
+
+Supported colors for data points and loess regression line:
+
+http://www.stat.columbia.edu/~tzheng/files/Rcolor.pdf
+
+http://research.stowers-institute.org/efg/R/Color/Chart/ColorChart.pdf
+
+
+
+.. class:: warningmark
+
+This tool requires that the statistical programming environment R has been installed on the system hosting Galaxy (http://www.r-project.org/). If you are running this tool on Galaxy via the Cloud, this does not apply to you.
+
+
+------
+
+**Citation:**
+
+This tool is part of the CloudMap package from the Hobert Lab. If you use this tool, please cite `Gregory Minevich, Danny S Park, Daniel Blankenberg, Richard J. Poole, and Oliver Hobert.  CloudMap: A Cloud-based Pipeline for Analysis of Mutant Genome Sequences. (Genetics 2012 In Press)`__
+
+    .. __: http://hobertlab.org/cloudmap
+
+Correspondence to gm2123@columbia.edu (Gregory Minevich) or r.poole@ucl.ac.uk (Richard J. Poole) or or38@columbia.edu (Oliver Hobert)
+
+    </help>
+</tool>

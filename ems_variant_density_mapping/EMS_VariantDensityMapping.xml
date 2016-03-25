@@ -1,0 +1,84 @@
+<tool id="ems_variant_density_mapping" name="CloudMap: EMS Variant Density Mapping">
+    <description>Map a mutation by linkage to regions of high mutation density using WGS data</description>
+    <command interpreter="python">EMS_VariantDensityMapping.py  --snp_vcf "$snp_vcf"  --ylim "$ylim" --hist_color "$hist_color" --standardize "$standardize" --ems "$ems" --output "$output" </command>
+    <inputs>
+	<param name="snp_vcf" type="data" format="vcf" label="VCF of SNPs" help="Takes a VCF file of WGS variants present in a C.elegans mutant strain that has been backcrossed to its (pre-mutagenesis) starting strain"/>
+	<param name="ylim" size = "15" type="integer" value="200" label="Y-axis upper limit"/> 
+	<param name="hist_color" size = "15" type="text" value="darkgray" label="Color for 1Mb bins" help="See below for list of supported colors"/> 
+	<param name="standardize" type="boolean" truevalue="true" falsevalue="false" checked="true"  label="Standardize X-axis" help="Frequency plots from separate chromosomes will have uniform X-axis spacing for comparison"/>
+	<param name="ems" type="boolean" truevalue="true" falsevalue="false" checked="true"  label="Filter for most common EMS-induced variants (G/C—>A/T)"/> 
+    </inputs>
+    <outputs>
+        <data name="output" type="text" format="pdf" />
+    </outputs>
+    <requirements>
+        <requirement type="python-module">sys</requirement>
+        <requirement type="python-module">optparse</requirement>
+        <requirement type="python-module">csv</requirement>
+        <requirement type="python-module">re</requirement>
+	<requirement type="python-module">decimal</requirement>
+        <requirement type="python-module">rpy</requirement>
+    </requirements>
+    <tests>
+	<param name="snp_vcf" value="" />
+	<output name="output" file="" />
+    </tests>
+    <help>
+**What it does:** 
+
+This tool is part of the CloudMap pipeline for analysis of mutant genome sequences. For further details, please see `Gregory Minevich, Danny S. Park, Daniel Blankenberg, Richard J. Poole, and Oliver Hobert.  CloudMap: A Cloud-based Pipeline for Analysis of Mutant Genome Sequences. (Genetics 2012 In Press)`__
+
+    .. __: http://biochemistry.hs.columbia.edu/labs/hobert/literature.html
+
+CloudMap workflows, shared histories and reference datasets are available at the `CloudMap Galaxy page`__ 
+
+    .. __: http://usegalaxy.org/cloudmap 
+
+Following the approach detailed in Zuryn et al., Genetics 2010, this tool plots histograms of variant density in a mutant C.elegans strain that has been backcrossed to its (pre-mutagenesis) starting strain. Common (i.e. non-phenotype causing) variants present in multiple WGS strains **with the same background** should first be subtracted using the GATK tool *Select Variants*.
+
+Sample output where LG III shows linkage to the causal mutation is shown below. In this example, common variants from another strain have been subtracted and remaining variants have been filtered for most common EMS-induced mutations i.e. G/C --> A/T):
+
+.. image:: http://biochemistry.hs.columbia.edu/labs/hobert/CloudMap/EMS_Variant_Density_750px.png
+
+
+
+
+
+The experimental approach is detailed in Figure 1a from Zuryn et al., Genetics 2010:
+
+.. image:: http://biochemistry.hs.columbia.edu/labs/hobert/CloudMap/Zuryn_2010_Genetics_Fig1a.pdf
+
+
+Subtracting common (non-phenotype causing) variants from more whole genome sequenced strains (using GATK Tools *Select Variants*) will result in less noise and a tighter mapping region. Additional backcrosses will also result in a smaller mapping region.
+
+------
+
+**Settings:**
+
+.. class:: infomark
+
+Supported colors for data points and loess regression line:
+
+http://www.stat.columbia.edu/~tzheng/files/Rcolor.pdf
+
+http://research.stowers-institute.org/efg/R/Color/Chart/ColorChart.pdf
+
+
+
+
+.. class:: warningmark
+
+This tool requires that the statistical programming environment R has been installed on the system hosting Galaxy (http://www.r-project.org/). If you are accessing this tool on Galaxy via the Cloud, this does not apply to you.
+
+------
+
+**Citation:**
+
+This tool is part of the CloudMap package from the Hobert Lab. If you use this tool, please cite `Gregory Minevich, Danny S. Park, Daniel Blankenberg, Richard J. Poole, and Oliver Hobert.  CloudMap: A Cloud-based Pipeline for Analysis of Mutant Genome Sequences. (Genetics 2012 In Press)`__
+
+    .. __: http://biochemistry.hs.columbia.edu/labs/hobert/literature.html
+
+Correspondence to gm2123@columbia.edu (G.M.) or or38@columbia.edu (O.H.)
+
+    </help>
+</tool>

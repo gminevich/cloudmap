@@ -1,0 +1,151 @@
+<tool id="snp_mapping_using_wgs" name="CloudMap: Hawaiian Variant Mapping with WGS data">
+    <description>Map a mutation by plotting recombination frequencies resulting from crossing to a highly polymorphic strain</description>
+    <command interpreter="python">
+	#if $source.source_select=="elegans" #SNP_Mapping.py --sample_vcf "$sample_vcf" --loess_span "$loess_span" --d_yaxis "$d_yaxis" --h_yaxis "$h_yaxis" --points_color "$points_color" --loess_color "$loess_color" --output "$output" --location_plot_output "$location_plot_output" --standardize "$standardize" --normalize_bins "$normalize_bins" --break_file "$source.Celegans"
+    #else if  $source.source_select=="brachypodium" #SNP_Mapping.py --sample_vcf "$sample_vcf" --loess_span "$loess_span" --d_yaxis "$d_yaxis" --h_yaxis "$h_yaxis" --points_color "$points_color" --loess_color "$loess_color" --output "$output" --location_plot_output "$location_plot_output" --standardize "$standardize" --normalize_bins "$normalize_bins" --break_file "$source.Brachy"  
+	#else if  $source.source_select=="arabidopsis" #SNP_Mapping.py --sample_vcf "$sample_vcf" --loess_span "$loess_span" --d_yaxis "$d_yaxis" --h_yaxis "$h_yaxis" --points_color "$points_color" --loess_color "$loess_color" --output "$output" --location_plot_output "$location_plot_output" --standardize "$standardize" --normalize_bins "$normalize_bins" --break_file "$source.Arabidop" 
+	#else if  $source.source_select=="other" #SNP_Mapping.py --sample_vcf "$sample_vcf" --loess_span "$loess_span" --d_yaxis "$d_yaxis" --h_yaxis "$h_yaxis" --points_color "$points_color" --loess_color "$loess_color" --output "$output" --location_plot_output "$location_plot_output" --standardize "$standardize" --normalize_bins "$normalize_bins" --break_file "$source.Other" 
+	#end if 
+    </command>
+
+    <inputs>
+	<conditional name="source">
+		<param name="source_select" type="select" label="Please select the species">
+            <option value="elegans">C. elegans</option>
+            <option value="brachypodium">Brachypodium</option>
+            <option value="arabidopsis">Arabidopsis</option>
+            <option value="other">Other</option>
+      	</param>
+      	<when value="elegans">
+        	<param name="Celegans" type="hidden" value="C.elegans" label="The C.elegans configuration file by default" help="C.elegans help" />
+		</when>
+        <when value="brachypodium">
+            <param name="Brachy" type="hidden" value="Brachypodium" label="The Brachypodium configuration file by default" help="Brachypodium help" />
+        </when>
+      	<when value="arabidopsis">
+        	<param name="Arabidop" type="hidden" value="Arabidopsis" label="The Arabidopsis configuration file by default" help="Arabidopsis help" />
+		</when>
+      	<when value="other">
+        	<param name="Other" type="data" format="tabular" label="Please select your 'Other species' configuration file from your history" help="Tabular configuration file for Other species support" />
+		</when>
+    </conditional>  
+        <param name="sample_vcf" size = "125" type="data" format="vcf" label="WGS Mutant VCF File" help="WGS Mutant VCF file from pooled F2 mutants that have been crossed to a mapping strain. The VCF should contain data from only mapping strain (e.g. Hawaiian) SNP positions" />
+		<param name="loess_span" size = "15" type="float" value=".1" label="Loess span" help="Parameter that controls the degree of data smoothing."/>    
+		<param name="d_yaxis" size = "15" type="float" value="1" label="Y-axis upper limit for scatter plot" />
+		<param name="h_yaxis" size = "15" type="integer" value="0" label="Y-axis upper limit for frequency plot" help="'0' default adjusts scale to tallest peak" />
+		<param name="points_color" size = "15" type="text" value="gray27" label="Color for data points" help="See below for list of supported colors"/> 
+		<param name="loess_color" size = "15" type="text" value="red" label="Color for loess regression line" help="See below for list of supported colors"/>
+		<param name="standardize" type="boolean" truevalue="true" falsevalue="false" checked="true"  label="Standardize X-axis" help="Scatter plots and frequency plots from separate chromosomes will have uniform X-axis spacing for comparison"/>
+		<param name="normalize_bins" type="boolean" truevalue="true" falsevalue="false" checked="true"  label="Normalize frequency plots" help="Frequency plots of pure parental allele counts will be normalized according to the equation in Fig.7B of the CloudMap paper"/>
+    </inputs>
+    <outputs>
+        <data name="output" type="text" format="tabular" />
+        <data name="location_plot_output" format="pdf" />
+    </outputs>
+    <requirements>
+        <requirement type="python-module">sys</requirement>
+        <requirement type="python-module">optparse</requirement>
+        <requirement type="python-module">csv</requirement>
+        <requirement type="python-module">re</requirement>
+	<requirement type="python-module">decimal</requirement>
+        <requirement type="python-module">rpy</requirement>
+    </requirements>
+    <tests>
+	<param name="sample_vcf" value="" />
+	<output name="output" file="" />
+	<output name="plot_output" file="" />
+    </tests>
+    <help>
+**What it does:** 
+
+This tool is part of the CloudMap pipeline for analysis of mutant genome sequences. For further details, please see `Gregory Minevich, Danny S. Park, Daniel Blankenberg, Richard J. Poole and Oliver Hobert.  CloudMap: A Cloud-based Pipeline for Analysis of Mutant Genome Sequences. (Genetics 2012 In Press)`__
+
+    .. __: http://hobertlab.org/original-research/
+
+CloudMap workflows, shared histories and reference datasets are available at the `CloudMap Galaxy page`__ 
+
+    .. __: http://usegalaxy.org/cloudmap 
+
+CloudMap video user guides and Frequently Asked Questions (FAQs) are available at the `Hobert lab website`__ 
+
+    .. __: http://hobertlab.org/cloudmap       
+
+This tool improves upon, and automates, the method described in Doitsidou et al., PLoS One 2010 for mapping causal mutations using whole genome sequencing data. 
+
+Sample CloudMap output for a linked chromosome:
+
+.. image:: http://www.hobertlab.org/CloudMap/Linked_LG_500px.png
+
+
+The polymorphic Hawaiian strain CB4856 is used as a mapping strain in most cases but in principle any sequenced nematode strain that is significantly different from the mutant strain can be used for mapping. The tool plots the ratio of mapping strain (Hawaiian)/mutant strain (N2) nucleotides at all SNP positions, reflecting the number of recombinants in the sequenced pool of animals. Chromosomes which contain regions of linkage to the causal mutation will have regions where the ratio of mapping strain (Hawaiian)/total reads will be equal to 0. The scatter plots for such linked regions will have a high number of data points lying exactly on the X axis. A loess regression line is plotted through all the points on a given chromosome giving further accuracy to the linked region. 
+
+Each scatter plot has a corresponding frequency plot that displays regions of linked chromosomes where pure parental (mutant strain) alleles are concentrated. 1Mb bins for the 0 ratio SNP positions are colored gray by default and .5Mb bins are colored in red. By default, frequency plots of pure parental alleles are normalized to remove false linkage caused by previously described (Seidel et al. 2008) patterns of genetic incompatibility between Bristol and Hawaiian strains.  This normalization can be turned off via a checkbox input form setting.
+
+
+The experimental design required to generate data for the plots is described in the CloudMap paper (Fig.6A):
+
+.. image:: http://www.hobertlab.org/CloudMap/Doitsidou_2010_PLoS_Fig.1_500px.png
+
+
+------
+
+**Input:**
+
+
+This tool accepts as input a single VCF file containing reference (e.g. Bristol) and alternate (e.g. Hawaiian) mapping strain alleles calls at each of the mapping strain variant positions (e.g. 112,000 Hawaiian SNPs) in the pooled mutant sample. This input VCF is generated at an earlier analysis step by running the GATK Unified Genotyper on a BAM alignment file of the pooled mutant sample with a provided reference file of mapping strain variants (e.g. Hawaiian SNPs) in VCF format. The reader is referred to the user guide and online video for direction on this procedure. 
+
+Default GATK Unified Genotyper parameters for mapping quality, base quality and coverage at each SNP position typically yield good results, though users may experiment with adjusting these parameters. In our testing, low threshold filtering on base pair quality (default settings) has been useful in improving accuracy of plots while high threshold filtering on coverage has skewed plot accuracy.  
+
+The required VCF of mapping strain (e.g. Hawaiian) SNPs is a reference file that contains mapping strain SNP positions and reference base pairs at each position. It is available in the `CloudMap Shared Data library`__ 
+
+    .. __: http://usegalaxy.org/library
+
+You may also make your own VCF of mapping strain variant positions following the steps described in the CloudMap paper.
+
+The CloudMap Hawaiian Variant Mapping with WGS Data tool supports data from any organism that has been crossed to a mapping strain for which variant information is available. C. elegans and Arabidopsis are natively supported. For all other organisms, users must provide a simple tab-delimited configuration file containing chromosome numbers and respective lengths (example configuration files for most major organisms provided at http://usegalaxy.org/cloudmap). Additional files required for other organisms are the same as described for C. elegans: a VCF file consisting of pooled F2 mutant progeny sequencing data, and a VCF file of the mapping strain variants.
+
+
+**Output:**
+
+The tool also provides a tabular output file that contains a count of the number of reference and alternate variants at each mapping strain variant position as well as the ratio of mapping strain (e.g. Hawaiian)/alternate SNPs. The position of each mapping strain SNP in map units and physical coordinates is also provided in the output file.  
+
+
+------
+
+**Settings:**
+
+.. class:: infomark
+
+Information on loess regression and the loess span parameter:
+http://en.wikipedia.org/wiki/Local_regression
+
+.. class:: infomark
+
+Based on our testing, we've settled on .1 as a loess span default. Larger values result in smoothing of the line to reflect trends at a more macro level. Smaller values result in loess lines that more closely reflect local data fluctuations. 
+
+.. class:: infomark
+
+Supported colors for data points and loess regression line:
+
+http://www.stat.columbia.edu/~tzheng/files/Rcolor.pdf
+
+http://research.stowers-institute.org/efg/R/Color/Chart/ColorChart.pdf
+
+
+
+.. class:: warningmark
+
+This tool requires that the statistical programming environment R has been installed on the system hosting Galaxy (http://www.r-project.org/). If you are running this tool on Galaxy via the Cloud, this does not apply to you.
+
+
+------
+
+**Citation:**
+
+This tool is part of the CloudMap package from the Hobert Lab. If you use this tool, please cite `Gregory Minevich, Danny S. Park, Daniel Blankenberg, Richard J. Poole, and Oliver Hobert.  CloudMap: A Cloud-based Pipeline for Analysis of Mutant Genome Sequences. (Genetics 2012 In Press)`__
+
+    .. __: http://hobertlab.org/cloudmap
+
+Correspondence to gm2123@columbia.edu (Gregory Minevich) or r.poole@ucl.ac.uk (Richard J. Poole) or or38@columbia.edu (Oliver Hobert)
+    </help>
+</tool>
