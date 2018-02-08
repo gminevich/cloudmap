@@ -1,6 +1,6 @@
-#cloudmap
+## CloudMap
 
-<b>CloudMap: A Cloud-based Pipeline for Analysis of Mutant Genome Sequences</b>
+<b>[CloudMap: A Cloud-based Pipeline for Analysis of Mutant Genome Sequences](https://www.ncbi.nlm.nih.gov/pubmed/23051646)</b>
 
 Gregory Minevich<sup>1,§</sup>, Danny S. Park<sup>1</sup>, Daniel Blankenberg<sup>2</sup>, Richard J. Poole<sup>1,3,§</sup>, and Oliver Hobert<sup>1,§</sup>
 
